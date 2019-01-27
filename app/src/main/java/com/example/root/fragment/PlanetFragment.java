@@ -4,21 +4,36 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.ViewPager;
 import android.support.v7.widget.AppCompatImageView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
+import com.example.root.CardFragmentPagerAdapter;
+import com.example.root.CardItem;
+import com.example.root.CardPagerAdapter;
+import com.example.root.ShadowTransformer;
 import com.example.root.activity.MainActivity;
 import com.example.root.myapplication.R;
 
 public class PlanetFragment extends Fragment implements View.OnClickListener {
     private AppCompatImageView imageButton;
-    private FrameLayout frameLayout;
+    private RelativeLayout frameLayout;
     private SharedPreferences.Editor editor;
     private int coinCount;
+    private TextView coinCountView;
+
+    private ViewPager mViewPager;
+
+    private CardPagerAdapter mCardAdapter;
+    private ShadowTransformer mCardShadowTransformer;
+    private CardFragmentPagerAdapter mFragmentCardAdapter;
+    private ShadowTransformer mFragmentCardShadowTransformer;
 
     public PlanetFragment() {
     }
@@ -35,7 +50,7 @@ public class PlanetFragment extends Fragment implements View.OnClickListener {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_planet, container, false);
 
-        SharedPreferences sharedPref = this.getActivity().getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences sharedPref = this.getActivity().getSharedPreferences("ball", Context.MODE_PRIVATE);
         editor = sharedPref.edit();
         if (sharedPref.getInt("money", -1) == -1) {
             editor.putInt("money", coinCount);
@@ -43,6 +58,22 @@ public class PlanetFragment extends Fragment implements View.OnClickListener {
         } else {
             coinCount = sharedPref.getInt("money", coinCount);
         }
+        coinCountView = view.findViewById(R.id.coinCount);
+        coinCountView.setText(String.valueOf(coinCount));
+
+        mViewPager = view.findViewById(R.id.viewPager);
+        mCardAdapter = new CardPagerAdapter();
+        mCardAdapter.addCardItem(new CardItem(R.string.title_1, R.string.text_1, R.drawable.mars3));
+        mCardAdapter.addCardItem(new CardItem(R.string.title_2, R.string.text_1, R.drawable.earth));
+        mFragmentCardAdapter = new CardFragmentPagerAdapter(getFragmentManager(),
+                dpToPixels(2, getContext()));
+
+        mCardShadowTransformer = new ShadowTransformer(mViewPager, mCardAdapter);
+        mFragmentCardShadowTransformer = new ShadowTransformer(mViewPager, mFragmentCardAdapter);
+
+        mViewPager.setAdapter(mCardAdapter);
+        mViewPager.setPageTransformer(false, mCardShadowTransformer);
+        mViewPager.setOffscreenPageLimit(3);
         frameLayout = view.findViewById(R.id.frame_layout_id);
         frameLayout.setBackgroundResource(R.drawable.background);
         imageButton = view.findViewById(R.id.back_button);
@@ -60,5 +91,15 @@ public class PlanetFragment extends Fragment implements View.OnClickListener {
                 break;
 
         }
+    }
+
+    /**
+     * Change value in dp to pixels
+     *
+     * @param dp
+     * @param context
+     */
+    private float dpToPixels(int dp, Context context) {
+        return dp * (context.getResources().getDisplayMetrics().density);
     }
 }

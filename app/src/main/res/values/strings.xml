@@ -10,4 +10,12 @@
     <string name="background">Background</string>
     <string name="planet">Planet</string>
     <string name="coinIcon">💰</string>
+    <string name="title_1">111</string>
+    <string name="title_2">222</string>
+    <string name="title_3">333</string>
+    <string name="title_4">444</string>
+    <string name="text_1">1</string>
+    <string name="text_2">2</string>
+    <string name="text_3">3</string>
+    <string name="text_4">4</string>
 </resources>

@@ -47,7 +47,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private BallView ballView;
     private float xPos, xAccel, xVel = 0.0f;
     private float yPos, yAccel, yVel = 0.0f;
-    private Image ball;
+    private Image ballHappy;
+    private Image ballSad;
+    private Image ballNow;
     private Image over;
     private Image circle;
     private Image restart;
@@ -87,7 +89,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onCreate(savedInstanceState);
 
         // region Highscore and money
-        SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences sharedPref = this.getSharedPreferences("ball", Context.MODE_PRIVATE);
         editor = sharedPref.edit();
         if (sharedPref.getInt("highscore", -1) == -1) {
             editor.putInt("highscore", highscore);
@@ -222,8 +224,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         circle.setX(circle.getX() + randXForCircle);
         circle.setY(circle.getY() + randYForCircle);
 
-        ball.setCentreX((int) (xPos + ball.getWidth() / 2));
-        ball.setCentreY((int) (yPos + ball.getHeight() / 2));
+        ballNow.setCentreX((int) (xPos + ballNow.getWidth() / 2));
+        ballNow.setCentreY((int) (yPos + ballNow.getHeight() / 2));
 
         circle.setCentreX(circle.getX() + circle.getWidth() / 2);
         circle.setCentreY(circle.getY() + circle.getHeight() / 2);
@@ -342,7 +344,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         dangerList.add(new Image(getResources(), R.drawable.asteroid, 72, 72, 0, 0));
         dangerList.add(new Image(getResources(), R.drawable.asteroid, 72, 72, 0, 0));
         pause = new Image(getResources(), R.drawable.pause, 100, 100, maxWidth - 120, 20);
-        ball = new Image(getResources(), R.drawable.ball, 130, 130, 0, 0);
+        ballHappy = new Image(getResources(), R.drawable.ball_happy, 130, 130, 0, 0);
+        ballSad = new Image(getResources(), R.drawable.ball_sad, 130, 130, 0, 0);
+        ballNow = ballSad;
         over = new Image(getResources(), R.drawable.over, 512, 180, maxWidth / 2 - 256, maxHeight / 2 - 164);
     }
 
@@ -462,10 +466,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 canvas.drawBitmap(playInPause.getImage(), playInPause.getX(), playInPause.getY(), null);
             } else {
                 //region score,coin and danger detection
-                if (distance(ball.getCentreX(), ball.getCentreY(), circle.getCentreX(), circle.getCentreY()) < circle.getHeight() / 2 + ball.getHeight() / 2) {
+                if (distance(ballNow.getCentreX(), ballNow.getCentreY(), circle.getCentreX(), circle.getCentreY()) < circle.getHeight() / 2 + ballNow.getHeight() / 2) {
                     score++;
+                    ballNow = ballHappy;
+                } else {
+                    ballNow = ballSad;
                 }
-                if (distance(ball.getCentreX(), ball.getCentreY(), coin.getCentreX(), coin.getCentreY()) < coin.getHeight() / 2 + ball.getHeight() / 2) {
+                if (distance(ballNow.getCentreX(), ballNow.getCentreY(), coin.getCentreX(), coin.getCentreY()) < coin.getHeight() / 2 + ballNow.getHeight() / 2) {
                     coinSound.getMediaPlayer().start();
                     coinCountPerGame++;
                     coin.setX((int) (Math.random() * (maxWidth - 296) + 148));
@@ -474,16 +481,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     coin.setCentreY(coin.getY() + coin.getHeight() / 2);
                 }
                 if (dangerCountInGame > 0) {
-                    for (int i = 0; i < dangerCountInGame; i++) {
-                        if (distance(ball.getCentreX(), ball.getCentreY(),
-                                dangerList.get(i).getX() + dangerList.get(i).getHeight() / 2,
-                                dangerList.get(i).getY() + dangerList.get(i).getHeight() / 2) < dangerList.get(i).getHeight() / 2 + ball.getHeight() / 2) {
-                            gameOverSound.getMediaPlayer().start();
-                            gameSound.getMediaPlayer().pause();
-                            gameSound.getMediaPlayer().seekTo(0);
-                            gameOver = true;
-                            invalidate();
-                            return;
+                    if (distance(ballNow.getCentreX(), ballNow.getCentreY(), circle.getCentreX(), circle.getCentreY()) > ballNow.getHeight() / 2 + circle.getHeight() / 2) {
+                        for (int i = 0; i < dangerCountInGame; i++) {
+                            if (distance(ballNow.getCentreX(), ballNow.getCentreY(),
+                                    dangerList.get(i).getX() + dangerList.get(i).getHeight() / 2,
+                                    dangerList.get(i).getY() + dangerList.get(i).getHeight() / 2) < dangerList.get(i).getHeight() / 2 + ballNow.getHeight() / 2) {
+                                gameOverSound.getMediaPlayer().start();
+                                gameSound.getMediaPlayer().pause();
+                                gameSound.getMediaPlayer().seekTo(0);
+                                gameOver = true;
+                                invalidate();
+                                return;
+                            }
                         }
                     }
                 }
@@ -493,7 +502,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                 canvas.drawBitmap(circle.getImage(), circle.getX(), circle.getY(), null);
                 canvas.drawBitmap(coin.getImage(), coin.getX(), coin.getY(), null);
-                canvas.drawBitmap(ball.getImage(), xPos, yPos, null);
                 canvas.drawBitmap(pause.getImage(), pause.getX(), pause.getY(), null);
                 drawCoinPerRound(canvas, highScorePaint);
                 drawScore(canvas, highScorePaint);
@@ -501,14 +509,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 for (int i = 0; i < dangerCountInGame; i++) {
                     canvas.drawBitmap(dangerList.get(i).getImage(), dangerList.get(i).getX(), dangerList.get(i).getY(), null);
                 }
+                canvas.drawBitmap(ballNow.getImage(), xPos, yPos, null);
 
                 //endregion
 
-                if (xPos > maxWidth - 100 || xPos < 0 || yPos > maxHeight - 100 || yPos < 0) {
-                    gameOverSound.getMediaPlayer().start();
-                    gameSound.getMediaPlayer().pause();
-                    gameSound.getMediaPlayer().seekTo(0);
-                    gameOver = true;
+                if (xPos > maxWidth) {
+                    xPos -= maxWidth;
+                }
+                if (xPos + 120 < 0) {
+                    xPos += maxWidth;
+                }
+                if (yPos > maxHeight) {
+                    yPos -= maxHeight;
+                }
+                if (yPos + 120 < 0) {
+                    yPos += maxHeight;
                 }
                 invalidate();
             }
@@ -534,6 +549,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         Log.d("Start", "User wants to start the game");
                         menuStep = false;
                         notValidated = true;
+                        paused = false;
                         dogBarkSound.getMediaPlayer().pause();
                         dogBarkSound.getMediaPlayer().seekTo(0);
                         gameSound.getMediaPlayer().start();
@@ -541,7 +557,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         invalidate();
                     } else if (x > exit.getX() && x < exit.getX() + exit.getWidth() && y > exit.getY() && y < exit.getY() + exit.getHeight()) {
                         Log.d("Exit", "User wants to exit");
-                        finish();
+                        finishAndRemoveTask();
                         System.exit(0);
                     } else if (x > settings.getX() &&
                             x < settings.getX() + settings.getWidth() &&

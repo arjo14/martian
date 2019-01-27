@@ -1,7 +1,5 @@
 package com.example.root.activity;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -11,7 +9,6 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.view.WindowManager;
-import android.widget.TextView;
 
 import com.example.root.fragment.BackgroundFragment;
 import com.example.root.fragment.PlanetFragment;
